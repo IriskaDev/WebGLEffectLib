@@ -61,7 +61,6 @@ function animate(){
 	if(lastTime != 0){
 		var elapsed = timeNow - lastTime;
 		angle += (90*elapsed) / 1000.0;
-		//positionCalculator(planetList, elapsed);
 	}
 	lastTime = timeNow;
 	shininess = 7.5 + 0.27 * Math.cos(lastTime/20);

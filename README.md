@@ -1,0 +1,1 @@
+Anyone can use these code in any purpose without permission.
