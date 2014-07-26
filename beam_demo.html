@@ -1,0 +1,103 @@
+<html>
+<head>
+<title>Just Test</title>
+<!-- JavaScript Libraries -->
+<script type='text/javascript' src='js/utils/gl-matrix-min.js'></script>
+<script type='text/javascript' src='js/utils/utils.js'></script>
+<script type='text/javascript' src='js/utils/webGLUtils.js'></script>
+<script type='text/javascript' src='js/utils/interaction.js'></script>
+<script type='text/javascript' src='js/effect/beam.js'></script>
+<script type='text/javascript' src='js/shader/shader_manager.js'></script>
+<script type='text/javascript' src='js/shader/beam_shader.js'></script>
+<script id="gl-code">
+var gl = null;
+var c_width = 0;
+var c_height = 0;
+var angle = 0;
+var beam = null;
+var _shader_manager = ShaderManager.get_instance();
+var shininess = 5.0;
+var color = [1.3, 2.5, 5.8, 1.2];
+
+
+function draw(){
+	gl.viewport(0, 0, c_width, c_height);
+	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+	transforms.updatePerspective(45, c_width / c_height, 0.1, 10000000000000);
+
+	gl.useProgram(beam.prg);
+	beam.motion(transforms);
+	beam.set_shininess(shininess);
+	beam.set_color(color);
+	beam.config_prg();
+	beam.draw(transforms, camera);
+}
+
+
+function sceneReflash(){
+	gl.clearColor(0.01, 0.01, 0.01, 1.0);
+	gl.clearDepth(1.0);
+	gl.enable(gl.DEPTH_TEST);
+	gl.depthFunc(gl.LEQUAL);
+	gl.enable(gl.BLEND);
+	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+	gl.enable(gl.CULL_FACE);
+	gl.cullFace(gl.FRONT);
+	
+}
+
+
+function renderLoop(){
+	utils.requestAnimFrame(renderLoop);
+	sceneReflash();
+	animate();
+	draw();
+}
+
+
+var lastTime = 0;
+function animate(){
+	var timeNow = new Date().getTime();
+	if(lastTime != 0){
+		var elapsed = timeNow - lastTime;
+		angle += (90*elapsed) / 1000.0;
+		//positionCalculator(planetList, elapsed);
+	}
+	lastTime = timeNow;
+	shininess = 7.5 + 0.27 * Math.cos(lastTime/20);
+	color [0] = 1.3 + 0.22 * Math.cos(lastTime/30);
+	color [1] = 2.5 + 0.83 * Math.cos(lastTime/40);
+	color [2] = 5.8 + 1.22 * Math.cos(lastTime/50);
+}
+
+
+function runWebGLApp(){
+	gl = utils.getGLContext('canvas-element');
+	gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+	camera = new Camera(CAMERA_TRACKING_TYPE);
+	camera.goHome([0,0,0]);
+	camera.setFocus([0,0,0]);
+	camera.setPosition([0, 0, 10]);
+	camera.hookRenderer = draw;
+	transforms = new SceneTransforms(camera);
+	transforms.init();
+
+	_shader_manager.register_shader(gl, beam_shader.shader_name, beam_shader);
+	prg = _shader_manager.get_shader_by_name(beam_shader.shader_name);
+	beam = new Beam(gl, prg, 1, 5000);
+	beam.initBuffers();
+	gl.useProgram(beam.prg);
+	beam.config_prg(beam.prg, shininess);
+
+	renderLoop();
+}
+
+
+</script>
+</head>
+<body onLoad="runWebGLApp()">
+	<canvas id="canvas-element" width="1680" height="950">
+		Your broser does not support the HTML5 canvas element
+	</canvas>
+</body>
+</html>

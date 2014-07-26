@@ -45,9 +45,6 @@ var ShaderManager = (function() {
 					return shader_instance_dict[prg_name];
 				else
 					return null;
-			},
-			get_data: function(){
-				return shader_instance_dict;
 			}
 		};
 	};
