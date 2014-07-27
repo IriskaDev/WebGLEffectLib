@@ -37,4 +37,4 @@ beam_shader = {
 			gl_FragColor = finalColor;\n\
 		}\
 	"
-}
+};

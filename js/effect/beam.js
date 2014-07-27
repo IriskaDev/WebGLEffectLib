@@ -1,9 +1,9 @@
 function genBeam(radius, length){
 	var beam = new Array();
-	var vertexPositionData = [];
-	var normalData = [];
-	var textureCoordData = [];
-	var indexData = [];
+	var vertexPositionData = new Array();
+	var normalData = new Array();
+	var textureCoordData = new Array();
+	var indexData = new Array();
 	
 	for (var i = 0; i < 8; i ++){
 		var angle = Math.PI / 4.0 * i;
@@ -42,10 +42,14 @@ function genBeam(radius, length){
 }
 
 function Beam(gl, prg, radius, length){
-	this.startPoint = [-length/2.0, 0.0, 0.0];
+	this.len = length;
+	this.originStartPoint = [-length/2.0, 0.0, 0.0, 1.0];
+	this.startPoint = [-length/2.0, 0.0, 0.0, 1.0];
 	this.radius = radius;
-	this.up = [0.0, 1.0, 0.0];
-	this.right = [0.0, 0.0, 1.0];
+	this.originUp = [0.0, 1.0, 0.0, 0.0];
+	this.up = [0.0, 1.0, 0.0, 0.0];
+	this.originRight = [0.0, 0.0, 1.0, 0.0];
+	this.right = [0.0, 0.0, 1.0, 0.0];
 	this.shininess = 7.5;
 	this.color = [1.3, 2.5, 5.8, 1.4];
 
@@ -54,7 +58,7 @@ function Beam(gl, prg, radius, length){
 	this.texture = null;
 	this.textureData = new Image();
 	this.mvMatrix = mat4.create();
-	this.mvMatrixL = mat4.create();
+	this.mMatrix = mat4.create();
 	this.modelData = genBeam(radius, length);
 
 	this.initTexture = function(src){
@@ -81,6 +85,14 @@ function Beam(gl, prg, radius, length){
 		this.color = color;
 	}
 
+	this.init_mmatrix = function(){
+		this.mMatrix = mat4.create();
+		this.mMatrix[0] = 1.0;
+		this.mMatrix[5] = 1.0;
+		this.mMatrix[10] = 1.0;
+		this.mMatrix[15] = 1.0;
+	}
+
 	this.initBuffers = function(){
 		for (var i = 0; i < this.modelData.length; i ++){
 			this.modelData[i]["vertexBuffer"] = gl.createBuffer();
@@ -104,13 +116,13 @@ function Beam(gl, prg, radius, length){
 		
 
 		//calculate the value that needed in determining the condition's value
-		var vectorSC = vectorMinus(camera.position, this.startPoint);
+		var vectorSC = vectorMinus(camera.position, this.startPoint.slice(0, 3));
 		var modSC = vectorModuls(vectorSC);
 		var cosPIDiv4 = Math.sqrt(2)/2.0;
 		//transfer the camera's vectex to the axis we build up there
 		//beamCoordX is the axis z 's value
-		var beamCoordX = modSC * dotProduct(vectorSC, this.right);
-		var beamCoordY = modSC * dotProduct(vectorSC, this.up);
+		var beamCoordX = modSC * dotProduct(vectorSC, this.right.slice(0, 3));
+		var beamCoordY = modSC * dotProduct(vectorSC, this.up.slice(0, 3));
 		var modPrVecSc = Math.sqrt(beamCoordX*beamCoordX+beamCoordY*beamCoordY);
 		var cosVecSc = beamCoordX / modPrVecSc;
 		var condition;
@@ -145,11 +157,7 @@ function Beam(gl, prg, radius, length){
 			gl.bindBuffer(gl.ARRAY_BUFFER, this.modelData[drawingSequence[i]]["vertexBuffer"]);
 			gl.vertexAttribPointer(this.prg.aVertexPosition, 3, gl.FLOAT, false, 0, 0);
 		
-			//gl.bindBuffer(gl.ARRAY_BUFFER, this.textureBuffer);
-			//gl.vertexAttribPointer(this.prg.aVertexTextureCoord, 2, gl.FLOAT, false, 0, 0);
-			
 			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.modelData[drawingSequence[i]]["indexBuffer"]);
-			//gl.bindTexture(gl.TEXTURE_2D, this.texture);
 			gl.drawElements(gl.TRIANGLES, this.modelData[drawingSequence[i]]["index"].length, gl.UNSIGNED_SHORT, 0);
 		}
 		gl.bindBuffer(gl.ARRAY_BUFFER, null);
@@ -163,15 +171,30 @@ function Beam(gl, prg, radius, length){
 	
 	this.rotate = function(angle, rot){
 		mat4.rotate(this.mvMatrix, angle, rot);
+		mat4.rotate(this.mMatrix, angel, rot);
 	}
 	
-	this.motion = function(transforms){
-		this.currentPosition = [0.0, 0.0, 0.0];
+	this.set_position = function(transforms, target_pos){
+		this.currentPosition = target_pos;
 		transforms.calculateModelView();
 		transforms.push();
-		this.mvMatrix = transforms.mvMatrix;
-		mat4.translate(this.mvMatrix, this.currentPosition);
+		mat4.translate(transforms.mvMatrix, target_pos);
+		mat4.translate(this.mMatrix, target_pos);
 		transforms.setMatrixUniforms(gl, this.prg);
 		transforms.pop();
+	}
+
+	this.arr_cpy = function(input_arr){
+		var tmp_ret_arr = new Array();
+		for(var i = 0; i < input_arr.length; ++i){
+			tmp_ret_arr.push(input_arr[i]);
+		}
+		return tmp_ret_arr;
+	}
+
+	this.apply_model_transform = function(){
+		this.startPoint = mat4.multiplyVec4(this.mMatrix, this.arr_cpy(this.originStartPoint));
+		this.up = mat4.multiplyVec4(this.mMatrix, this.arr_cpy(this.originUp));
+		this.right = mat4.multiplyVec4(this.mMatrix, this.arr_cpy(this.originRight));
 	}
 }

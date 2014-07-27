@@ -26,16 +26,26 @@ function draw(){
 	transforms.updatePerspective(45, c_width / c_height, 0.1, 10000000000000);
 
 	gl.useProgram(beam.prg);
-	beam.motion(transforms);
+	beam.init_mmatrix();
+	beam.set_position(transforms, [0.0, 2.0, 0.0]);
 	beam.set_shininess(shininess);
 	beam.set_color(color);
 	beam.config_prg();
+	beam.apply_model_transform();
 	beam.draw(transforms, camera);
+
+	beam2.init_mmatrix();
+	beam2.set_position(transforms, [0.0, 4.0, 0.0]);
+	beam2.set_shininess(shininess);
+	beam2.set_color(color);
+	beam2.config_prg();
+	beam2.apply_model_transform();
+	beam2.draw(transforms, camera);
 }
 
 
 function sceneReflash(){
-	gl.clearColor(0.01, 0.01, 0.01, 1.0);
+	gl.clearColor(0.1, 0.1, 0.1, 1.0);
 	gl.clearDepth(1.0);
 	gl.enable(gl.DEPTH_TEST);
 	gl.depthFunc(gl.LEQUAL);
@@ -43,7 +53,6 @@ function sceneReflash(){
 	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 	gl.enable(gl.CULL_FACE);
 	gl.cullFace(gl.FRONT);
-	
 }
 
 
@@ -83,10 +92,11 @@ function runWebGLApp(){
 
 	_shader_manager.register_shader(gl, beam_shader.shader_name, beam_shader);
 	prg = _shader_manager.get_shader_by_name(beam_shader.shader_name);
-	beam = new Beam(gl, prg, 1, 5000);
+	beam = new Beam(gl, prg, .5, 5000);
 	beam.initBuffers();
-	gl.useProgram(beam.prg);
-	beam.config_prg(beam.prg, shininess);
+
+	beam2 = new Beam(gl, prg, .5, 5000);
+	beam2.initBuffers();
 
 	renderLoop();
 }

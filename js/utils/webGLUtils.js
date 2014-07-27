@@ -7,6 +7,7 @@ function SceneTransforms(c){
 	this.cMatrix	= mat4.create();
 };
 
+
 SceneTransforms.prototype.calculateModelView = function(){
 	this.mvMatrix = this.camera.getViewTransform();
 };
