@@ -1,5 +1,5 @@
 
-var BeamGeometry = (function (){
+var BeamMesh = (function (){
 
 	var genBeam = function (radius, length){
 		var beam = new Array();
@@ -44,8 +44,12 @@ var BeamGeometry = (function (){
 		return beam;
 	}
 
-	return function (radius, length){
-		THREE.Geometry.call(this);
+	return function (radius, length, material, camera){
+		THREE.Object3D.call(this);
+
+		this.cameraPtr = camera;
+		this.oriUp = new THREE.Vector4( 0.0, 1.0, 0.0, 0.0 );
+		this.oriRight = new THREE.Vector4( 0.0, 0.0, 1.0, 0.0 );
 
 		var modelData = genBeam(radius, length);
 
@@ -57,10 +61,75 @@ var BeamGeometry = (function (){
 			for( var j = 0; j < modelData[i]["index"].length; ++j ){
 				partial.faces.push(modelData[i]["index"][j]);
 			}
-			this.merge( partial );
+			if( material == undefined ){
+				this.add( new THREE.Mesh(partial) );
+			}else{
+				this.add( new THREE.Mesh(partial, material) );
+			}
 		}
 
+		for(var i = 0; i < this.children.length; ++i){
+			console.log(this.children[i].geometry.vertices[0]);
+		}
+
+
+		this.renderDepthUpdate = function ( ) {
+			var upCpy = this.oriUp.clone( );
+			upCpy.applyMatrix4( this.matrix );
+			var rightCpy = this.oriRight.clone( );
+			rightCpy.applyMatrix4( this.matrix );
+			var drawingSequence;
+
+
+			//calculate the value that needed in determining the condition's value
+			var vectorSC = this.cameraPtr.position.sub( this.position );
+			var modSC = vectorSC.length( );
+			var cosPIDiv4 = Math.sqrt( 2 ) / 2.0;
+
+			//transfer the camera's vectex to the axis we build up there
+			//beamCoordX is the axis z 's value
+			var beamCoordX = modSC * vectorSC.dot( rightCpy );
+			var beamCoordY = modSC * vectorSC.dot( upCpy );
+			var modPrVecSc = Math.sqrt( beamCoordX * beamCoordX + beamCoordY * beamCoordY );
+			var cosVecSc = beamCoordX / modPrVecSc;
+			var condition;
+
+			//according the values that calculated above to detemine condition's value
+			if( beamCoordY > 0 ) {
+				if( cosVecSc >= cosPIDiv4 ) condition = 0;
+				else if( cosVecSc < cosPIDiv4 && cosVecSc >= 0 ) condition = 1;
+				else if( cosVecSc < 0 && cosVecSc >= -cosPIDiv4 ) condition = 2;
+				else condition = 3;
+			}else{
+				if( cosVecSc < -cosPIDiv4 ) condition = 4;
+				else if( cosVecSc >= -cosPIDiv4 && cosVecSc < 0 ) condition = 5;
+				else if( cosVecSc >= 0 && cosVecSc < cosPIDiv4 ) condition = 6;
+				else condition = 7;
+			}
+
+
+			//according condition's value to decide what drawing sequence should be;
+			switch( condition ){
+				case 0: drawingSequence = [4, 3, 5, 6, 2, 7, 1, 0]; break;
+				case 1: drawingSequence = [5, 4, 3, 2, 6, 7, 0, 1]; break;
+				case 2: drawingSequence = [6, 5, 4, 3, 7, 0, 1, 2]; break;
+				case 3: drawingSequence = [7, 6, 5, 4, 0, 1, 2, 3]; break;
+				case 4: drawingSequence = [0, 7, 6, 5, 1, 2, 3, 4]; break;
+				case 5: drawingSequence = [1, 0, 7, 6, 2, 3, 4, 5]; break;
+				case 6: drawingSequence = [3, 2, 4, 1, 5, 0, 6, 7]; break;
+				case 7: drawingSequence = [4, 3, 5, 6, 2, 7, 1, 0]; break;
+				default: break;
+			}
+
+
+			//set partial's depth value
+			var depthVal = 9;
+			for (var i = 0; i < this.children.length; ++i, --depthVal){
+				this.children[drawingSequence[i]].renderDepth = depthVal;
+			}
+
+		}
 	}
 })();
 
-BeamGeometry.prototype = Object.create( THREE.Geometry.prototype );
+BeamMesh.prototype = Object.create( THREE.Object3D.prototype );
