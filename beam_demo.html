@@ -48,6 +48,7 @@ function init(){
 		vertexShader: beam_shader.vx_shader,
 		fragmentShader: beam_shader.fg_shader
 	} );
+	material.blending = THREE.AdditiveBlending;
 	material.transparent = true;
 	material.depthTest = false;
 	material.uniforms.uShininess.value = 5.0;
