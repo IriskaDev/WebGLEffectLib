@@ -1,23 +1,18 @@
 beam_shader = {
 	shader_name: "beam_shader",
-	attr_list: ["aVertexPosition"],
-	uniform_list: [
-		"uShininess",
-		"uMVMatrix",
-		"uPMatrix",
-		"uNMatrix",
-		"uRadius",
-		"uColor"
-	],
-	vs_shader: "\n\
-		attribute vec3 aVertexPosition;\n\
-		uniform mat4 uMVMatrix;\n\
-		uniform mat4 uPMatrix;\n\
-		uniform mat4 uNMatrix;\n\
+	uniform_list: {
+		uShininess: { type: "f", value: 5.0 },
+		uRadius: { type: "f", value: 1.0 },
+		uColor: { type: "v4", value: new THREE.Vector4( 1.3, 2.5, 5.8, 1.2 ) }
+
+	},
+	vx_shader: "\n\
 		varying vec3 vertex;\n\
 		void main(void){\n\
-			vertex = aVertexPosition;\n\
-			gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);\n\
+			vertex = position;\n\
+			//gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);\n\
+			vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );\n\
+			gl_Position = projectionMatrix * mvPosition;\n\
 		}\
 	",
 	fg_shader: "\n\
