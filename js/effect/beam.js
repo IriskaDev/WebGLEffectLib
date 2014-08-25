@@ -68,10 +68,6 @@ var BeamMesh = (function (){
 			}
 		}
 
-		for(var i = 0; i < this.children.length; ++i){
-			console.log(this.children[i].geometry.vertices[0]);
-		}
-
 
 		this.renderDepthUpdate = function ( ) {
 			var upCpy = this.oriUp.clone( );
@@ -82,7 +78,7 @@ var BeamMesh = (function (){
 
 
 			//calculate the value that needed in determining the condition's value
-			var vectorSC = this.cameraPtr.position.sub( this.position );
+			var vectorSC = this.cameraPtr.position.clone( ).sub( this.position );
 			var modSC = vectorSC.length( );
 			var cosPIDiv4 = Math.sqrt( 2 ) / 2.0;
 

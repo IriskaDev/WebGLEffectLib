@@ -50,16 +50,19 @@ function init(){
 	} );
 	material.blending = THREE.AdditiveBlending;
 	material.transparent = true;
-	//material.depthTest = false;
 	material.uniforms.uShininess.value = 5.0;
 	material.uniforms.uRadius.value = beamRadius;
 
 	beam = new BeamMesh( beamRadius, beamLength, material, camera );
 	scene.add(beam);
+
+
 	var mesh = new THREE.Mesh( new THREE.SphereGeometry( 0.4, 30, 30));
 	mesh.position.x = 2;
 	mesh.position.z = 2;
 	scene.add(mesh);
+
+
 	renderer = new THREE.WebGLRenderer( {antialias:true} );
 	container.appendChild( renderer.domElement );
 	renderer.autoClear = false;
