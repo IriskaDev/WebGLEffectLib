@@ -9,6 +9,7 @@
 *		frequency: Number,  ---default 1000, millisecond as unit
 *		num_per_shot: Number  ---default 1, launch num_per_shot particles every time;
 *		movementController: Function,  ---default
+*		velocity: Function  ---default function(){ return new THREE.Vector3( 0, 0, 1 ); }
 *	}
 *	movementController is a Function 
 *	which takes an instance of THREE.Sprite and a number as parameter
@@ -25,7 +26,9 @@ var ParticleGenerator = (function(){
 		THREE.Object3D.call(this);
 
 		//parameter proccess
-		if ( params.position !== undefined || ! params.position instanceof THREE.Vector3 )
+		if ( params.position === undefined || ! params.position instanceof THREE.Vector3 )
+			this.position = new THREE.Vector3( 0, 0, 0 );
+		else
 			this.position = params.position;
 		if ( params.direction === undefined || ! params.direction instanceof THREE.Vector3 )
 			this.direction = new THREE.Vector3( 0, 0, 1 );
@@ -51,24 +54,25 @@ var ParticleGenerator = (function(){
 			this.num_per_shot = 1;
 		else
 			this.num_per_shot = params.num_per_shot
-		if ( params.movementController !== undefined && params.movementController instanceof Function)
-			this.movementController = params.movementController;
-		else
+		if ( params.movementController === undefined || ! params.movementController instanceof Function)
 			this.movementController = function (target, eplased_time){
 
-			}
+				target.position.x += eplased_time / 10000;
+
+			};
+		else
+			this.movementController = params.movementController;
+		if ( params.velocity === undefined || ! params.velocity instanceof Function )
+			this.velocity = function () {
+				return new THREE.Vector3( 0, 0, 1 );
+			};
+		else
+			this.velocity = params.velocity;
+			
 
 		var particle_buffer = new Array(this.max_num);
 		var swap_buffer = new Array(this.max_num);
 
-		while(particle_buffer > 0) particle_buffer.pop();
-
-		for(var i = 0; i < this.max_num; ++i){
-			swap_buffer[i] = this.particle.clone( );
-			swap_buffer[i].life_time = this.life_time;
-			swap_buffer[i].born_time = 0;
-			this.reset(swap_buffer[i]);
-		}
 
 
 		var cur_time;
@@ -77,6 +81,16 @@ var ParticleGenerator = (function(){
 
 
 		this.init = function(){
+			while(particle_buffer.length > 0) particle_buffer.pop();
+
+			for(var i = 0; i < this.max_num; ++i){
+				var particle = this.particle.clone( );
+				particle.life_time = this.life_time;
+				particle.born_time = 0;
+				swap_buffer[i] = particle;
+				this.reset(swap_buffer[i]);
+			}
+
 			for(var i = 0; i < this.max_num; ++i){
 				this.add(swap_buffer[i]);
 				swap_buffer[i].visible = false;
@@ -84,7 +98,10 @@ var ParticleGenerator = (function(){
 		}
 
 		this.reset = function(particle){
-			particle.position = this.position.clone( );
+			particle.position.set( this.position.x,
+								   this.position.y,
+								   this.position.z );
+			particle.velocity = this.velocity( );
 		}
 
 		this.start = function(){
@@ -97,9 +114,9 @@ var ParticleGenerator = (function(){
 			var eplased_time = new_time - cur_time;
 			cur_time = new_time;
 
-			for(var i = 0; i < alive_particle_buffer.length; ++i){
-				if (cur_time - particle.born_time > particle.life_time) {
-					var particle = alive_particle_buffer.shift();
+			for(var i = 0; i < particle_buffer.length; ++i){
+				if (cur_time - particle_buffer[i].born_time > particle_buffer[i].life_time) {
+					var particle = particle_buffer.shift();
 					this.reset(particle);
 					particle.visible = false;
 					swap_buffer.push(particle);
@@ -109,14 +126,14 @@ var ParticleGenerator = (function(){
 			}
 
 			if ( is_launching ){
-				if ( alive_particle_buffer.length < this.max_num ){
+				if ( particle_buffer.length < this.max_num ){
 					if( cur_time - last_launch_time > this.frequency ){
 						for ( var i = 0; i < this.num_per_shot; ++i ){
 							if ( swap_buffer.length > 0 ){
 								var particle = swap_buffer.pop();
 								particle.visible = true;
 								particle.born_time = new_time;
-								alive_particle_buffer.push( particle );
+								particle_buffer.push( particle );
 								last_launch_time = cur_time;
 							} //end if 
 						} //end for 
@@ -124,8 +141,8 @@ var ParticleGenerator = (function(){
 				} //end if 
 			} //end if 
 
-			for ( var i = 0; i < alive_particle_buffer.length; ++i ){
-				this.movementController(alive_particle_buffer[i], eplased_time);
+			for ( var i = 0; i < particle_buffer.length; ++i ){
+				this.movementController(particle_buffer[i], eplased_time);
 			}
 		}
 

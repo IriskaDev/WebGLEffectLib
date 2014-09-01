@@ -1,0 +1,84 @@
+<html>
+<head>
+<title>Just Test</title>
+<!-- JavaScript Libraries -->
+<script type='text/javaScript' src='libs/three.js'></script>
+<script type='text/javascript' src='js/effect/particleEffect/ParticleGenerator.js'></script>
+<script type='text/javaScript' src='js/controllers/TrackballControls.js'></script>
+</head>
+<body>
+	<div id="container"></div>
+<script id="gl-code">
+
+var container, stats;
+
+var camera, scene, renderer, controller;
+
+var generator, particle;
+
+var beamRadius = 0.4;
+var beamLength = 10;
+
+var width = window.innerWidth || 2;
+var height = window.innerHeight || 2;
+var windowHalfX = width / 2;
+var windowHalfY = height / 2;
+
+
+init();
+animate();
+
+function init(){
+
+	container = document.getElementById( 'container' );
+
+	camera = new THREE.PerspectiveCamera( 45, windowHalfX / windowHalfY, 1, 30000 );
+
+
+	camera.position.z = 4;
+
+	scene = new THREE.Scene();
+
+
+	generator = new ParticleGenerator( {} );
+	generator.init();
+	generator.start();
+	scene.add(generator);
+
+
+	renderer = new THREE.WebGLRenderer( {antialias:true} );
+	container.appendChild( renderer.domElement );
+	renderer.autoClear = false;
+	renderer.setClearColor( 0x000000, 1 );
+
+
+	onWindowResize();
+
+	window.addEventListener( 'resize', onWindowResize, false );
+
+	controller = new THREE.TrackballControls( camera, renderer.domElement );
+	controller.update();
+}
+
+function onWindowResize( event ) {
+	renderer.setSize(window.innerWidth, window.innerHeight);
+
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
+}
+
+function animate() {
+	requestAnimationFrame( animate );
+	render();
+}
+
+function render() {
+	controller.update();
+	renderer.clear();
+	generator.update();
+	renderer.render( scene, camera );
+}
+
+</script>
+</body>
+</html>
