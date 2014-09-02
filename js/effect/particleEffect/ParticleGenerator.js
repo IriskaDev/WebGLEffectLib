@@ -38,33 +38,42 @@ var ParticleGenerator = (function(){
 			this.particle = new THREE.Sprite( new THREE.SpriteMaterial( { color: 0x66ccff } ) );
 		else
 			this.particle = params.particle;
-		if ( params.max_num === undefined || NaN( params.max_num ) )
+		if ( params.max_num === undefined || isNaN( params.max_num ) )
 			this.max_num = 32;
 		else
 			this.max_num = params.max_num;
-		if ( params.life_time === undefined || NaN( params.life_time ) )
+		if ( params.life_time === undefined || isNaN( params.life_time ) )
 			this.life_time = 30000;
 		else
 			this.life_time = params.life_time;
-		if ( params.frequency === undefined || NaN( params.frequency ) )
+		if ( params.frequency === undefined || isNaN( params.frequency ) )
 			this.frequency = 1000;
 		else
 			this.frequency = params.frequency;
-		if( params.num_per_shot === undefined || NaN( params.num_per_shot ) )
+		if( params.num_per_shot === undefined || isNaN( params.num_per_shot ) )
 			this.num_per_shot = 1;
 		else
 			this.num_per_shot = params.num_per_shot
 		if ( params.movementController === undefined || ! params.movementController instanceof Function)
 			this.movementController = function (target, eplased_time){
+				var opacity_reduce_rate = 1.0 / target.life_time;
 
-				target.position.x += eplased_time / 10000;
+				target.velocity.add( new THREE.Vector3( 
+						-.0025 + 0.005 * Math.random(),
+						-.0025 + 0.005 * Math.random(),
+						-.0025 + 0.005 * Math.random()
+					) );
+				target.material.opacity -= opacity_reduce_rate * eplased_time;
+
+				target.material.rotation += eplased_time / 10000 + (-0.001 + 0.002 * Math.random());
+				target.position.add( target.velocity.clone( ).multiplyScalar( eplased_time / 1000 ) ); 
 
 			};
 		else
 			this.movementController = params.movementController;
 		if ( params.velocity === undefined || ! params.velocity instanceof Function )
 			this.velocity = function () {
-				return new THREE.Vector3( 0, 0, 1 );
+				return new THREE.Vector3( 0, 0.1, 0 );
 			};
 		else
 			this.velocity = params.velocity;
@@ -85,6 +94,7 @@ var ParticleGenerator = (function(){
 
 			for(var i = 0; i < this.max_num; ++i){
 				var particle = this.particle.clone( );
+				particle.material = this.particle.material.clone( );
 				particle.life_time = this.life_time;
 				particle.born_time = 0;
 				swap_buffer[i] = particle;
@@ -102,6 +112,7 @@ var ParticleGenerator = (function(){
 								   this.position.y,
 								   this.position.z );
 			particle.velocity = this.velocity( );
+			particle.material.opacity = 1.0;
 		}
 
 		this.start = function(){

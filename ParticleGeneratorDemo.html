@@ -25,6 +25,8 @@ var windowHalfX = width / 2;
 var windowHalfY = height / 2;
 
 
+var texture, material, particle;
+
 init();
 animate();
 
@@ -40,7 +42,17 @@ function init(){
 	scene = new THREE.Scene();
 
 
-	generator = new ParticleGenerator( {} );
+	texture = THREE.ImageUtils.loadTexture ( "img/snowflake7_alpha.png" );
+	material = new THREE.SpriteMaterial( {map: texture} );
+	material.transparent = true;
+	particle = new THREE.Sprite( material );
+
+
+	generator = new ParticleGenerator( {
+		particle: particle,
+		max_num: 256,
+		frequency: 100
+	} );
 	generator.init();
 	generator.start();
 	scene.add(generator);
