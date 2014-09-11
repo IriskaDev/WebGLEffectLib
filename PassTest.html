@@ -4,6 +4,7 @@
 <!-- JavaScript Libraries -->
 <script type='text/javaScript' src='libs/three.js'></script>
 <script type='text/javascript' src='js/GlobalNameSpace.js'></script>
+<script type='text/javascript' src='js/shader/ColorReversePass.js'></script>
 <script type='text/javascript' src='js/effect/postProcessing/PostProcessor.js'></script>
 <script type='text/javascript' src='js/effect/particleEffect/ParticleGenerator.js'></script>
 <script type='text/javaScript' src='js/controllers/TrackballControls.js'></script>
@@ -51,6 +52,12 @@ function init(){
 	material.transparent = true;
 	particle = new THREE.Sprite( material );
 
+	var shader = new THREE.ShaderMaterial({
+		uniforms: THREE.GLEffectLib.Shaders.ColorReversePass.uniforms,
+		vertexShader: THREE.GLEffectLib.Shaders.ColorReversePass.vx_shader,
+		fragmentShader: THREE.GLEffectLib.Shaders.ColorReversePass.fg_shader
+	});
+
 
 	generator = new THREE.GLEffectLib.ParticleGenerator( {
 		particle: particle,
@@ -69,6 +76,7 @@ function init(){
 	renderer.setClearColor( 0x000000, 1 );
 
 	post_processor = new THREE.GLEffectLib.PostProcessor( renderer );
+	post_processor.addProcessor(shader);
 	onWindowResize();
 
 	window.addEventListener( 'resize', onWindowResize, false );
