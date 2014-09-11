@@ -19,11 +19,10 @@
 */
 
 
-var ParticleGenerator = (function(){
-	//private
+THREE.GLEffectLib.ParticleGenerator = (function(){
 
 	return function ( params ) {
-		//public
+		
 		THREE.Object3D.call(this);
 
 		//parameter proccess
@@ -113,10 +112,10 @@ var ParticleGenerator = (function(){
 
 })();
 
-ParticleGenerator.prototype = Object.create( THREE.Object3D.prototype );
+THREE.GLEffectLib.ParticleGenerator.prototype = Object.create( THREE.Object3D.prototype );
 
 
-ParticleGenerator.prototype.init = function () {
+THREE.GLEffectLib.ParticleGenerator.prototype.init = function () {
 
 	while(this.particle_buffer.length > 0) this.particle_buffer.pop();
 
@@ -136,12 +135,12 @@ ParticleGenerator.prototype.init = function () {
 
 }
 
-ParticleGenerator.prototype.start = function () {
+THREE.GLEffectLib.ParticleGenerator.prototype.start = function () {
 	this.cur_time = (new Date()).valueOf();
 	this.is_launching = true;
 }
 
-ParticleGenerator.prototype.update = function () {
+THREE.GLEffectLib.ParticleGenerator.prototype.update = function () {
 
 	var new_time = (new Date()).valueOf();
 	var eplased_time = new_time - this.cur_time;
@@ -180,11 +179,11 @@ ParticleGenerator.prototype.update = function () {
 
 }
 
-ParticleGenerator.prototype.stop = function () {
+THREE.GLEffectLib.ParticleGenerator.prototype.stop = function () {
 	this.is_launching = false;
 }
 
-ParticleGenerator.prototype.dispose = function () {
+THREE.GLEffectLib.ParticleGenerator.prototype.dispose = function () {
 
 	for (var i = 0; i < this.particle_buffer.length; ++i){
 		if( this.particle_buffer[i] !== undefined ) {

@@ -3,6 +3,7 @@
 <title>Just Test</title>
 <!-- JavaScript Libraries -->
 <script type='text/javaScript' src='libs/three.js'></script>
+<script type='text/javascript' src='js/GlobalNameSpace.js'></script>
 <script type='text/javascript' src='js/effect/beam.js'></script>
 <script type='text/javascript' src='js/shader/shader_manager.js'></script>
 <script type='text/javascript' src='js/shader/beam_shader.js'></script>
@@ -12,7 +13,7 @@
 	<div id="container"></div>
 <script id="gl-code">
 var _shader_manager = ShaderManager.get_instance();
-var shininess = 5.0;
+var shininess = 12.0;
 var color = [1.3, 2.5, 5.8, 1.2];
 
 
@@ -50,10 +51,10 @@ function init(){
 	} );
 	material.blending = THREE.AdditiveBlending;
 	material.transparent = true;
-	material.uniforms.uShininess.value = 5.0;
+	material.uniforms.uShininess.value = shininess;
 	material.uniforms.uRadius.value = beamRadius;
 
-	beam = new BeamMesh( beamRadius, beamLength, material, camera );
+	beam = new THREE.GLEffectLib.BeamMesh( beamRadius, beamLength, material, camera );
 	scene.add(beam);
 
 

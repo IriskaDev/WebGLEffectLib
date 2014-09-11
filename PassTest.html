@@ -4,6 +4,7 @@
 <!-- JavaScript Libraries -->
 <script type='text/javaScript' src='libs/three.js'></script>
 <script type='text/javascript' src='js/GlobalNameSpace.js'></script>
+<script type='text/javascript' src='js/effect/postProcessing/PostProcessor.js'></script>
 <script type='text/javascript' src='js/effect/particleEffect/ParticleGenerator.js'></script>
 <script type='text/javaScript' src='js/controllers/TrackballControls.js'></script>
 </head>
@@ -27,6 +28,8 @@ var windowHalfY = height / 2;
 
 
 var texture, material, particle;
+
+var post_processor;
 
 init();
 animate();
@@ -65,7 +68,7 @@ function init(){
 	renderer.autoClear = false;
 	renderer.setClearColor( 0x000000, 1 );
 
-
+	post_processor = new THREE.GLEffectLib.PostProcessor( renderer );
 	onWindowResize();
 
 	window.addEventListener( 'resize', onWindowResize, false );
@@ -79,6 +82,8 @@ function onWindowResize( event ) {
 
 	camera.aspect = window.innerWidth / window.innerHeight;
 	camera.updateProjectionMatrix();
+
+	post_processor.reset();
 }
 
 function animate() {
@@ -90,7 +95,8 @@ function render() {
 	controller.update();
 	renderer.clear();
 	generator.update();
-	renderer.render( scene, camera );
+	//renderer.render( scene, camera );
+	post_processor.render( scene, camera );
 }
 
 </script>

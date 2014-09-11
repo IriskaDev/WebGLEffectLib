@@ -1,5 +1,5 @@
 
-var BeamMesh = (function (){
+THREE.GLEffectLib.BeamMesh = (function (){
 
 	var genBeam = function (radius, length){
 		var beam = new Array();
@@ -128,4 +128,4 @@ var BeamMesh = (function (){
 	}
 })();
 
-BeamMesh.prototype = Object.create( THREE.Object3D.prototype );
+THREE.GLEffectLib.BeamMesh.prototype = Object.create( THREE.Object3D.prototype );
