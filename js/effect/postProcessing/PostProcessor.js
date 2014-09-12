@@ -1,4 +1,28 @@
 
+THREE.GLEffectLib.PostProcessUnit = (function (){
+
+	return function(){
+
+	};
+
+})();
+
+
+THREE.GLEffectLib.PostProcessUnit.prototype = {
+
+	constructor: THREE.GLEffectLib.PostProcessUnit,
+
+	init: function (){
+
+	},
+
+	render: function ( renderer, camera, inputBuffer, outputBuffer){
+
+	}
+
+}
+
+
 THREE.GLEffectLib.PostProcessor = (function (){
 
 	return function( renderer, renderTarget ){
@@ -6,8 +30,8 @@ THREE.GLEffectLib.PostProcessor = (function (){
 		this.renderer = renderer;
 		this.camera = new THREE.OrthographicCamera( -1, 1, 1, -1, 0, 1 );
 		this.scene = new THREE.Scene();
-		this.artbord = new THREE.Mesh( new THREE.PlaneGeometry( 2, 2 ), null );
-		this.scene.add(this.artbord);
+		this.quad = new THREE.Mesh( new THREE.PlaneGeometry( 2, 2 ), null );
+		this.scene.add(this.quad);
 		this.renderToScreen = true;
 		this.currentTime = (new Date()).valueOf();
 
@@ -26,10 +50,16 @@ THREE.GLEffectLib.PostProcessor = (function (){
 		}
 
 		this.renderTarget1 = renderTarget;
-		this.renderTarget2 = renderTarget;
+		this.renderTarget2 = renderTarget.clone( );
 
 		this.inputBuffer = this.renderTarget1;
 		this.outputBuffer = this.renderTarget2;
+
+		this.copyShader = new THREE.ShaderMaterial({
+			uniforms: THREE.GLEffectLib.Shaders.CopyPass.uniforms,
+			vertexShader: THREE.GLEffectLib.Shaders.CopyPass.vx_shader,
+			fragmentShader: THREE.GLEffectLib.Shaders.CopyPass.fg_shader
+		});
 
 		this.postProcessors = [];
 
@@ -79,21 +109,35 @@ THREE.GLEffectLib.PostProcessor.prototype = {
 		}
 
 		for (var i = 0; i < this.postProcessors.length; ++i){
-			this.postProcessors[i].uniforms[ "tDiffuse" ].value = this.inputBuffer;
+			if ( this.postProcessors[i] instanceof THREE.ShaderMaterial ){
 
-			if( this.postProcessors[i].uniforms[ "delta_time" ] !== undefined )
-				this.postProcessors[i].uniforms[ "delta_time" ].value = delta_time;
+				this.postProcessors[i].uniforms[ "tDiffuse" ].value = this.inputBuffer;
 
-			this.artbord.material = this.postProcessors[i];
+				if( this.postProcessors[i].uniforms[ "delta_time" ] !== undefined )
+					this.postProcessors[i].uniforms[ "delta_time" ].value = delta_time;
 
-			if( i != this.postProcessors.length - 1 ) {
-				this.renderer.render( this.scene, this.camera, this.outputBuffer, forceClear );
-				this.swapBuffers();
-			}else{
-				if( this.renderToScreen ) {
-					this.renderer.render( this.scene, this.camera );
-				}else{
+				this.quad.material = this.postProcessors[i];
+
+				if ( i != this.postProcessors.length - 1 ) {
 					this.renderer.render( this.scene, this.camera, this.outputBuffer, forceClear );
+					this.swapBuffers();
+				}else{
+					if( this.renderToScreen ) {
+						this.renderer.render( this.scene, this.camera );
+					}else{
+						this.renderer.render( this.scene, this.camera, this.outputBuffer, forceClear );
+					}
+				}
+			} else if ( this.postProcessors[i].render instanceof Function ) {
+				this.postProcessors[i].render( this.scene, this.camera, this.inputBuffer, this.outputBuffer, this.quad );
+				if ( i != this.postProcessors.length -1 ) {
+					this.swapBuffers();
+				}else{
+					if( this.renderToScreen ) {
+						this.copyShader[ "tDiffuse" ].value = this.outputBuffer;
+						this.quad.material = this.copyShader;
+						this.renderer.render( this.scene, this.camera );
+					}
 				}
 			}
 		}	
