@@ -1,5 +1,6 @@
 /**
 *	parameters{
+*		scene:  THREE.Scene(),  ---default null, if not null the particle will add to target scene
 *		position: THREE.Vector3,  ---default THREE.Vector3( 0, 0, 0 )
 *		direction: THREE.Vector3,  ---default THREE.Vector3( 0, 0, 1 )
 *		particle: THREE.Sprite,  
@@ -26,40 +27,15 @@ THREE.GLEffectLib.ParticleGenerator = (function(){
 		THREE.Object3D.call(this);
 
 		//parameter proccess
-		if ( params.position === undefined || ! params.position instanceof THREE.Vector3 )
-			this.position = new THREE.Vector3( 0, 0, 0 );
-		else
-			this.position = params.position;
+		params.scene instanceof THREE.Scene ? this.scene = params.scene: this.scene = null;
+		params.position instanceof THREE.Vector3 ? this.position = params.position: this.position = new THREE.Vector3(0, 0, 0);
+		params.direction instanceof THREE.Vector3 ? this.direction = params.direction: this.direction = new THREE.Vector3(0, 0, 1);
+		params.particle instanceof THREE.Sprite ? this.particle = params.particle: this.particle = new THREE.Sprite(new THREE.SpriteMaterial({color: 0x66ccff}));
+		(! isNaN(params.max_num)) ? this.max_num = params.max_num: this.max_num = 32;
+		(! isNaN(params.life_time)) ? this.life_time = params.life_time: this.life_time = 30000;
+		(! isNaN(params.frequency)) ? this.frequency = params.frequency: this.frequency = 1000;
+		(! isNaN(params.num_per_shot)) ? this.num_per_shot = params.num_per_shot: this.num_per_shot = 1;
 
-		if ( params.direction === undefined || ! params.direction instanceof THREE.Vector3 )
-			this.direction = new THREE.Vector3( 0, 0, 1 );
-		else
-			this.direction = params.direction;
-
-		if ( params.particle === undefined || ! params.particle instanceof THREE.Sprite )
-			this.particle = new THREE.Sprite( new THREE.SpriteMaterial( { color: 0x66ccff } ) );
-		else
-			this.particle = params.particle;
-
-		if ( params.max_num === undefined || isNaN( params.max_num ) )
-			this.max_num = 32;
-		else
-			this.max_num = params.max_num;
-
-		if ( params.life_time === undefined || isNaN( params.life_time ) )
-			this.life_time = 30000;
-		else
-			this.life_time = params.life_time;
-
-		if ( params.frequency === undefined || isNaN( params.frequency ) )
-			this.frequency = 1000;
-		else
-			this.frequency = params.frequency;
-
-		if( params.num_per_shot === undefined || isNaN( params.num_per_shot ) )
-			this.num_per_shot = 1;
-		else
-			this.num_per_shot = params.num_per_shot
 
 		if ( params.movementController === undefined || ! params.movementController instanceof Function)
 			this.movementController = function ( target, eplased_time ){
@@ -129,7 +105,11 @@ THREE.GLEffectLib.ParticleGenerator.prototype.init = function () {
 	}
 
 	for(var i = 0; i < this.max_num; ++i){
-		this.add(this.swap_buffer[i]);
+		if ( this.scene !== null ) {
+			this.scene.add ( this.swap_buffer[i] );
+		} else {
+			this.add(this.swap_buffer[i]);
+		}
 		this.swap_buffer[i].visible = false;
 	}
 
@@ -149,7 +129,7 @@ THREE.GLEffectLib.ParticleGenerator.prototype.update = function () {
 	for(var i = 0; i < this.particle_buffer.length; ++i){
 		if (this.cur_time - this.particle_buffer[i].born_time > this.particle_buffer[i].life_time) {
 			var particle = this.particle_buffer.shift();
-			this.reset(particle);
+			//this.reset(particle);
 			particle.visible = false;
 			this.swap_buffer.push(particle);
 		}else{
@@ -163,6 +143,7 @@ THREE.GLEffectLib.ParticleGenerator.prototype.update = function () {
 				for ( var i = 0; i < this.num_per_shot; ++i ){
 					if ( this.swap_buffer.length > 0 ){
 						var particle = this.swap_buffer.pop();
+						this.reset( particle );
 						particle.visible = true;
 						particle.born_time = new_time;
 						this.particle_buffer.push( particle );
