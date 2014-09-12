@@ -4,7 +4,8 @@
 <!-- JavaScript Libraries -->
 <script type='text/javaScript' src='libs/three.js'></script>
 <script type='text/javascript' src='js/GlobalNameSpace.js'></script>
-<script type='text/javascript' src='js/shader/ColorReversePass.js'></script>
+<script type='text/javascript' src='js/shader/passShaders/ColorReversePass.js'></script>
+<script type='text/javascript' src='js/shader/passShaders/copyPass.js'></script>
 <script type='text/javascript' src='js/effect/postProcessing/PostProcessor.js'></script>
 <script type='text/javascript' src='js/effect/particleEffect/ParticleGenerator.js'></script>
 <script type='text/javaScript' src='js/controllers/TrackballControls.js'></script>
@@ -60,6 +61,7 @@ function init(){
 
 
 	generator = new THREE.GLEffectLib.ParticleGenerator( {
+		scene: scene,
 		particle: particle,
 		max_num: 512,
 		life_time: 60000,
@@ -96,6 +98,7 @@ function onWindowResize( event ) {
 
 function animate() {
 	requestAnimationFrame( animate );
+	generator.position.x = Math.cos((new Date().valueOf())/1000);
 	render();
 }
 
