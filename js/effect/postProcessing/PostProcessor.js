@@ -1,28 +1,4 @@
 
-THREE.GLEffectLib.PostProcessUnit = (function (){
-
-	return function(){
-
-	};
-
-})();
-
-
-THREE.GLEffectLib.PostProcessUnit.prototype = {
-
-	constructor: THREE.GLEffectLib.PostProcessUnit,
-
-	init: function (){
-
-	},
-
-	render: function ( renderer, camera, inputBuffer, outputBuffer){
-
-	}
-
-}
-
-
 THREE.GLEffectLib.PostProcessor = (function (){
 
 	return function( renderer, renderTarget ){
@@ -118,26 +94,24 @@ THREE.GLEffectLib.PostProcessor.prototype = {
 
 				this.quad.material = this.postProcessors[i];
 
-				if ( i != this.postProcessors.length - 1 ) {
-					this.renderer.render( this.scene, this.camera, this.outputBuffer, forceClear );
-					this.swapBuffers();
-				}else{
-					if( this.renderToScreen ) {
-						this.renderer.render( this.scene, this.camera );
-					}else{
-						this.renderer.render( this.scene, this.camera, this.outputBuffer, forceClear );
+				this.process( i == this.postProcessors.length - 1 );
+
+			} else if ( this.postProcessors[i].configMaterial instanceof Function ) {
+				var tmp = this.postProcessors[i].configMaterial( delta_time );
+				var last_unit = (i == this.postProcessors.length - 1);
+				if ( tmp instanceof Array ) {
+					for (var j = 0; j < tmp.length; ++j ){
+						tmp[j].uniforms[ "tDiffuse" ].value = this.inputBuffer;
+						this.quad.material = tmp[j];
+
+						this.process( last_unit && j == tmp.length - 1 );
 					}
-				}
-			} else if ( this.postProcessors[i].render instanceof Function ) {
-				this.postProcessors[i].render( this.scene, this.camera, this.inputBuffer, this.outputBuffer, this.quad );
-				if ( i != this.postProcessors.length -1 ) {
-					this.swapBuffers();
 				}else{
-					if( this.renderToScreen ) {
-						this.copyShader[ "tDiffuse" ].value = this.outputBuffer;
-						this.quad.material = this.copyShader;
-						this.renderer.render( this.scene, this.camera );
-					}
+
+					tmp.uniforms[ "tDiffuse" ].value = this.inputBuffer;
+					this.quad.material = tmp;
+					this.process( last_unit );
+
 				}
 			}
 		}	
@@ -154,5 +128,18 @@ THREE.GLEffectLib.PostProcessor.prototype = {
 		this.inputBuffer = this.outputBuffer;
 		this.outputBuffer = tmpBuffer;
 
+	},
+
+	process: function(last_pass) {
+		if( !last_pass ){
+			this.renderer.render( this.scene, this.camera, this.outputBuffer, forceClear );
+			this.swapBuffers();
+		}else{
+			if( this.renderToScreen ){
+				this.renderer.render( this.scene, this.camera );
+			}else{
+				this.renderer.renderer( this.scene, this.camera, this.outputBuffer, forceClear );
+			}
+		}
 	}
 }

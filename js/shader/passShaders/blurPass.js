@@ -1,4 +1,4 @@
-THREE.GLEffectLib.Shaders.blurPass = {
+THREE.GLEffectLib.Shaders.BlurPass = {
 	shader_name: "blurPass",
 	uniform_list: {
 		tDiffuse: { type: "t", value: null },
