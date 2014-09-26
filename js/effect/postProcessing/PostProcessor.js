@@ -94,7 +94,7 @@ THREE.GLEffectLib.PostProcessor.prototype = {
 
 				this.quad.material = this.postProcessors[i];
 
-				this.process( i == this.postProcessors.length - 1 );
+				this.process( i == this.postProcessors.length - 1, forceClear );
 
 			} else if ( this.postProcessors[i].configMaterial instanceof Function ) {
 				var tmp = this.postProcessors[i].configMaterial( delta_time );
@@ -104,13 +104,13 @@ THREE.GLEffectLib.PostProcessor.prototype = {
 						tmp[j].uniforms[ "tDiffuse" ].value = this.inputBuffer;
 						this.quad.material = tmp[j];
 
-						this.process( last_unit && j == tmp.length - 1 );
+						this.process( last_unit && j == tmp.length - 1, forceClear );
 					}
 				}else{
 
 					tmp.uniforms[ "tDiffuse" ].value = this.inputBuffer;
 					this.quad.material = tmp;
-					this.process( last_unit );
+					this.process( last_unit, forceClear );
 
 				}
 			}
@@ -130,7 +130,7 @@ THREE.GLEffectLib.PostProcessor.prototype = {
 
 	},
 
-	process: function(last_pass) {
+	process: function(last_pass, forceClear) {
 		if( !last_pass ){
 			this.renderer.render( this.scene, this.camera, this.outputBuffer, forceClear );
 			this.swapBuffers();
