@@ -1,0 +1,90 @@
+<html>
+<head>
+<title>Just Test</title>
+<!-- JavaScript Libraries -->
+<script type='text/javaScript' src='libs/three.js'></script>
+<script type='text/javascript' src='js/GlobalNameSpace.js'></script>
+<script type='text/javascript' src='js/shader/passShaders/copyPass.js'></script>
+<script type='text/javascript' src='js/shader/passShaders/BlurPass.js'></script>
+<script type='text/javascript' src='js/effect/postProcessing/postProcessingUnit/BlurUnit.js'></script>
+<script type='text/javascript' src='js/effect/postProcessing/PostProcessor.js'></script>
+<script type='text/javaScript' src='js/controllers/TrackballControls.js'></script>
+</head>
+<body>
+	<div id="container"></div>
+<script id="gl-code">
+
+
+var container, stats;
+
+var camera, scene, renderer, controller;
+var testSprite;
+
+
+var width = window.innerWidth || 2;
+var height = window.innerHeight || 2;
+var windowHalfX = width / 2;
+var windowHalfY = height / 2;
+
+var post_processor;
+
+init();
+animate();
+
+function init(){
+
+	container = document.getElementById( 'container' );
+
+	camera = new THREE.PerspectiveCamera( 45, windowHalfX / windowHalfY, 1, 30000 );
+
+	camera.position.z = 4;
+
+	scene = new THREE.Scene();
+
+	texture = THREE.ImageUtils.loadTexture( "img/miku.jpg" );
+	material = new THREE.SpriteMaterial({map: texture});
+	material.transparent = true;
+	testSprite = new THREE.Sprite(material);
+
+	scene.add(testSprite);
+
+	var blur_pass = new THREE.GLEffectLib.PostProcessUnit.BlurUnit(5);
+
+	renderer = new THREE.WebGLRenderer( {antialias:true} );
+	container.appendChild( renderer.domElement );
+	renderer.autoClear = false;
+	renderer.setClearColor( 0x000000, 1 );
+
+	post_processor = new THREE.GLEffectLib.PostProcessor( renderer );
+	post_processor.addProcessor(blur_pass);
+
+	onWindowResize();
+
+	window.addEventListener( 'resize', onWindowResize, false );
+
+	controller = new THREE.TrackballControls( camera, renderer.domElement );
+	controller.update();
+}
+
+function onWindowResize( event ) {
+	renderer.setSize(window.innerWidth, window.innerHeight);
+
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
+}
+
+function animate() {
+	requestAnimationFrame( animate );
+	render();
+}
+
+function render() {
+	controller.update();
+	renderer.clear();
+	//renderer.render( scene, camera );
+	post_processor.render( scene, camera );
+}
+
+</script>
+</body>
+</html>
