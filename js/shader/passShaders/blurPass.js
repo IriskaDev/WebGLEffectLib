@@ -43,7 +43,7 @@ THREE.GLEffectLib.Shaders.BlurPass = {
 						if( j >= uCountY ) {\n\
 							break;\n\
 						}\n\
-						tmpColor += texture2D( tDiffuse, vec2(vUv.x - (float(i) - float(uCountX) / 2.0) * uResolutionXRec, vUv.y - (float(j) - float(uCountY) / 2.0) * uResolutionYRec) ).rgb; \n\
+						tmpColor += texture2D( tDiffuse, vec2(vUv.x + (float(i) - float(uCountX) / 2.0) * uResolutionXRec, vUv.y + (float(j) - float(uCountY) / 2.0) * uResolutionYRec) ).rgb; \n\
 					}\n\
 				}\n\
 			gl_FragColor = vec4( tmpColor / float(uCountX * uCountY), 1.0 );\n\
