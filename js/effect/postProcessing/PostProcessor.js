@@ -119,7 +119,12 @@ THREE.GLEffectLib.PostProcessor.prototype = {
 	},
 
 	addProcessor: function ( shader ) {
-		this.postProcessors.push( shader );
+		//this.postProcessors.push( shader );
+		if ( !shader instanceof THREE.ShaderMaterial && !shader.configMaterial instanceof Function ) {
+			throw "Wrong Parameters";
+		} else {
+			this.postProcessors.push( shader );
+		}
 	},
 
 	swapBuffers: function () {
